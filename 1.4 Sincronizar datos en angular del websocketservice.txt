@@ -1,0 +1,62 @@
+Para eso necesitamos instalar httpClientModule en el app.module.ts y agregarlo
+en los imports
+
+import { HttpClientModule } from '@angular/common/http';
+
+ en el mapa.component.ts importamos el httpclient
+
+import { HttpClient } from '@angular/common/http';
+
+***Se recomienda agregar las peticiones http en servicios de angular, si el
+componente va a ser renderizado mas de una vez , para centralizar la data...
+
+Cremos una interface para que utilice la propiedad como indice
+
+interface RespMarcadores{
+  //La key puede ser un id
+  [ key: string]: Lugar
+}
+
+Ahora la variable lugares le modificamos, y le agregamos al constructor
+
+lugares :RespMarcadores= {};
+
+constructor( private http: HttpClient) { }
+
+//AL iniciar el componente, para descargar la data
+  ngOnInit() {
+
+    this.http.get<RespMarcadores>('http://localhost:5000/mapa')
+    .subscribe( lugares =>{
+    
+    
+    console.log(lugares);
+      this.lugares= lugares;
+
+    //Por ser la peticin http asincrona  primero deben ser cargados los datos
+    //antes de mostrar el mapa
+    this.cargarMapa();
+    });
+
+    
+
+
+  }
+
+
+DESPUES al for le agregamos
+
+//ASi creamos multiples marcadores dependiendo de los datos de lugares
+//el .entries sirve para regresar un arreglo con las propiedades que tengan los obj lugares
+//el const [] usa la destructuracion del objeto, el primero es la llave y el segundo el marcador
+for( const [id,marcador] of Object.entries(this.lugares) ){
+
+  console.log(id, marcador);
+
+  this.agregarMarcador(marcador);
+}
+
+  }
+
+
+

@@ -1,0 +1,149 @@
+Primero creamos el proyecto y le agregamos un servicio preconfigurado
+services/websocket.service.ts, despues instalamos la dependencia npm
+
+npm i ngx-socket-io --save
+
+Despues para instalar mapbox para angular 
+
+npm install mapbox-gl --save
+
+***Para poder utilizar el autocompletado de mapbox en typescript instalamos
+
+npm i @types/mapbox-gl --save-dev   "En la terminal de vsc bugaso powershell"
+
+Y despues tenemos que agregar los estilos css al index.html, hasta abajo del body
+
+
+<link href='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.css' rel='stylesheet' />
+
+Ahora cramos un componente donde utilizaremos el mapa, como 
+components/mapa
+
+Y le importamos la libreria js de mapbox en el mapa.component.ts
+
+import * as mapboxgl from 'mapbox-gl';
+
+y le importamos una interface
+
+import { Lugar } from '../../interfaces/interfaces';
+
+Despues creamos una interfaz en interfaces/interfaces.ts
+que debe tener esto
+
+export interface Lugar{
+    id: String;
+    nombre: String;
+    lng: number;
+    lat: number;
+    color: String;
+}
+
+Ahora le creamos el obj de tipo mapa
+
+ mapa: mapboxgl.Map;
+
+//Para que al cargar el componente se inicie el mapa
+
+ngOnInit() {
+    this.cargarMapa();
+  }
+
+//
+cargarMapa(){
+    //Asi utilizamos la libreria de js en angular
+    (mapboxgl as any).accessToken = 'pk.eyJ1IjoiaGlyYW1yZXllczA2IiwiYSI6ImNrM3VxdWpwNTBnNmgzZW8xZ2JydXp6c2YifQ.TfmBRbY6OAJQLdhUBM8iRw';
+this.mapa = new mapboxgl.Map({
+container: 'mapa',//aqui va el id del html
+style: 'mapbox://styles/mapbox/streets-v11',
+center:[-75.75512993582937, 45.349977429009954],
+zoom: 15.8
+});
+
+
+//ASi creamos multiples marcadores dependiendo de los datos de lugares
+for( const marcador of this.lugares){
+  this.agregarMarcador(marcador);
+}
+
+  }
+
+
+//Creamos un arreglo o data para crear punteros del mapa
+
+lugares: Lugar[] = [{
+    id: '1',
+    nombre: 'Fernando',
+    lng: -75.75512993582937,
+    lat: 45.349977429009954,
+    color: '#dd8fee'
+  },
+  {
+    id: '2',
+    nombre: 'Amy',
+    lng: -75.75195645527508, 
+    lat: 45.351584045823756,
+    color: '#790af0'
+  },
+  {
+    id: '3',
+    nombre: 'Orlando',
+    lng: -75.75900589557777, 
+    lat: 45.34794635758547,
+    color: '#19884b'
+  }];
+
+
+***Creo que ya ,
+
+Ahora para crear un boton que pueda crear marcadores, creamos una funcion
+
+agregarMarcador(marcador: Lugar){
+
+    //PARA CREAR UN POPUP MAS PERSONALIZABLE Y QUE SE PUEDA BORRAR EL MARKADOR
+
+const h2= document.createElement('h2');
+h2.innerText= marcador.nombre.toString();
+
+const btnBorrar= document.createElement('button');
+btnBorrar.innerText='Borrar';
+
+const div= document.createElement('div');
+div.append(h2, btnBorrar);
+
+ //Asi creamos un html que va a mostrar los marcadores
+ const customPopup= new mapboxgl.Popup({
+   //Asi para indicar la distancia del popup del markador
+   offset: 25,
+   //Asi desabilitamos que se cierren al hacer click al mapa
+   closeOnClick: false
+ }).setDOMContent(div);
+
+//Asi se crean los marcadores con sus configuraciones
+    const marker= new mapboxgl.Marker({
+      draggable: true,
+      color: marcador.color.toString()
+    })
+    //Asi se establece la posicion del marcador
+    .setLngLat([marcador.lng, marcador.lat])
+    .setPopup( customPopup)
+    .addTo(this.mapa);
+
+    //Asi capturamos el evento de arrastrar un marcador y tener su lng y lat
+    marker.on('drag', ()=>{
+      const lngLat = marker.getLngLat();
+      console.log(lngLat);
+    });
+
+    //Asi esta al pendiente del evento click en el boton borrar
+    btnBorrar.addEventListener('click', ()=>{
+      marker.remove();
+    });
+
+  }//La funcion
+
+
+
+
+
+
+

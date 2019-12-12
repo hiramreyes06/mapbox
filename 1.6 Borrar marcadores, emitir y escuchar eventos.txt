@@ -1,0 +1,55 @@
+Para borrar los marcadores a tiempo real nos vamos al mapa.component.ts
+y en el metodo de boton borrar
+
+ //Asi esta al pendiente del evento click en el boton borrar
+    btnBorrar.addEventListener('click', ()=>{
+
+      marker.remove();
+//Emitimos el evento del marcador borrado
+      this.wsService.emit('marcador-borrar', marcador.id);
+    });
+
+//Asi actualizamos el valor borrado del arreglo de objetos
+    this.markersMapbox[ marcador.id.toString() ] = marker;
+
+Ahora en el backend en sockets/socket.ts al const mapasockets le agregamos
+el evento a escuchar
+
+cliente.on('marcador-borrar', (id: string ) =>{
+        mapa.borrarMarcador( id );
+        
+        //De esta forma emitimos un evento para todos menos quien la mando
+        cliente.broadcast.emit( 'marcador-borrar', id )
+        
+    }); 
+
+Ahora en la clase mapa.ts le creamos la funcion de borrar marcador
+
+borrarMarcador( id:string ){
+        //Asi borramos lo que tenga la propiedad id del marcador
+        delete this.marcadores[id];
+        return this.getMarcadores();
+    }
+
+
+Ahora para escuchar el evento markador-borrado desde la app
+
+en el mapa.component.ts en el evento escucharSockets(){ le agregamos
+
+//Asi escuchamos el evento emitido por el servidor
+    this.wsService.listen('marcador-borrar')
+    .subscribe( ( id: string ) =>{
+      console.log('Marcador Borrado');
+      console.log(id);
+
+      //Asi eliminamos el marcador del arreglo
+      this.markersMapbox[id].remove();
+
+      //De esta forma eliminamos obj de markersMapboc progresivamente en memoria
+      delete this.markersMapbox[id];
+    });
+
+
+**Y ya estaria perro
+
+

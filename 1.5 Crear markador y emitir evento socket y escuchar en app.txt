@@ -1,0 +1,90 @@
+En el mapa.component.ts importamos el srevicio del socketservice y lo 
+agregamos al constructor
+
+import { WebsocketService } from '../../services/websocket.service'; 
+
+y dentro del metodo creamos el evento
+  crearMarcador(){
+
+//...
+ //Asi le asignamos un nombre al evento, y en el payload va el obj markador
+    this.wsService.emit('marcador-nuevo', customMarker );
+
+
+}
+
+
+Y ahora en el backend , en el server...  en la clase del mapa.ts, agregamos la 
+clase mapa y la funcion
+
+agregarMarcador( marcador:Marcador){
+        this.marcadores[ marcador.id ] = marcador;
+    }
+
+
+Ahora en el sockets/socket.ts importamos
+
+import { Mapa } from '../classes/mapa';
+import { Marcador } from '../classes/marcador';
+
+export const mapa= new Mapa();
+
+Agregamos el evento a escuchar del cliente
+//Eventos de mapa
+//EL cliente es la instancia de la app y el io es el server de express
+export const mapaSockets = ( cliente: Socket, io: socketIO.Server ) => {
+
+    cliente.on('marcador-nuevo', (marcador: Marcador) =>{
+        mapa.agregarMarcador( marcador );
+    });
+}
+
+
+Ahora en el routes/router.ts agregamos la instancia mapa de socket.ts
+
+import { usuariosConectados, mapa } from '../sockets/socket';
+
+y creamos la ruta
+
+router.get('/mapa', ( req: Request, res: Response  ) => {
+
+    res.json( mapa.getMarcadores() );
+
+});
+
+Y despues agregamos a la funcio el obj const de mapasocket al io.on('connection')
+
+//Configuracion de mapa
+            socket.mapaSockets( cliente, this.io );
+
+Ahora para en en la app escuche el evento emitido por el servidor y agregue el
+marcador, en el mapa.component.ts agregamos la funcion
+
+escucharSockets(){
+
+    //Asi captamos el evento emitido por el servidor
+    this.wsService.listen('marcador-nuevo')
+    .subscribe( (marcador:Lugar) =>{
+      console.log('Marcador nuevo');
+      console.log(marcador);
+
+      this.agregarMarcador(marcador);
+    });
+  }
+
+y añadimos la funcion al NgOnInit{
+
+  this.escucharSockets();
+
+
+
+
+
+
+
+
+
+
+
+
+

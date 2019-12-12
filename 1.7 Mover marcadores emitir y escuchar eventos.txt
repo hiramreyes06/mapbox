@@ -1,0 +1,51 @@
+En el mapa.component.ts
+
+Al evento que captura el arrstre del marker, marker.on('drag')
+
+ //Asi capturamos el evento de arrastrar un marcador y tener su lng y lat
+    marker.on('drag', ()=>{
+
+      const lngLat = marker.getLngLat();
+      
+//Con el ...Desgrafmentamos el obj en sus propiedades
+      console.log( {id: marcador.id, ...lngLat } );
+
+      //Asi tambien se pueden enviar los valores de las propiedades y ... para desfragmentar
+      this.wsService.emit('marcador-mover', {id: marcador.id, ...lngLat } );
+
+      //console.log(lngLat);
+    });
+
+
+Ahora en el backend en el sockets/socket.ts en el const mapaSockets, 
+agregamos el emit del evento
+
+cliente.on('marcador-mover', (marcador: Marcador ) =>{
+
+//Asi movemo el marcado
+        mapa.moverMarcador(marcador);
+        
+        //De esta forma emitimos un evento para todos menos quien la mando
+        cliente.broadcast.emit( 'marcador-mover', marcador );
+        
+    }); 
+
+
+Ahora en la app de angular , agregamos el listener para el evento, en el 
+mapa.component.ts en la funcion escucharSockets(){ , agregamos el listener
+
+//Asi captamos el evento emitido por el servidor
+    this.wsService.listen('marcador-mover')
+    .subscribe( (marcador:Lugar) =>{
+      console.log('Marcador nuevo');
+      console.log(marcador);
+
+      this.markersMapbox[ marcador.id.toString() ].setLngLat([marcador.lng, marcador.lat]);
+    });
+
+
+
+
+
+
+

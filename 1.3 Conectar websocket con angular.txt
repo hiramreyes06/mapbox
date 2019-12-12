@@ -1,0 +1,36 @@
+Para eso debemos verificar si tenemos instalado el npm de ngx-socket-io
+en el proyecto de angular
+
+Despues tenemos que crear la configuracion del server en el environment y el
+.prod
+
+//En desarrollo
+import { SocketIoConfig } from 'ngx-socket-io';
+
+export const config: SocketIoConfig = { url: 'http://localhost:5000', options: {} };
+
+export const environment = {
+  production: false,
+  socketIoConfig: config
+};
+
+Ahora debemos agregar el modulo de socket io al app.module.ts y la config
+en los imports
+
+//Asi usuamos el servicio rest con sockets
+import { SocketIoModule } from 'ngx-socket-io'
+
+//asi usamos la configuracion necesitada para prod o dev
+import { environment } from 'src/environments/environment';
+
+imports: [
+    BrowserModule,
+    SocketIoModule.forRoot( environment.socketIoConfig)
+  ],
+
+**Ahora para iniciar la conexion de angular con los sockets y los eventos del
+backend, en el app.component.ts importamos el servicio de websocketservies.ts
+
+constructor( private webSocketService: WebsocketService){
+
+
